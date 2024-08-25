@@ -17,19 +17,23 @@ Colaboradores
 Un agradecimiento especial a los siguientes colaboradores que han ayudado a hacer de Vinipedia una realidad:
 
 # Eeste Proyecto Fue Echo En Equipo Con:
-# Markbus-ai 
-# Alan 
-# Ramiro
+***Markbus-ai***
+
+***Alan***
+
+***Ramiro***
 # ¡Gracias a todos por su apoyo y contribuciones!
 
 # Instalación
 Para instalar Vinipedia localmente, clona este repositorio y sigue las instrucciones en el archivo README.md para configurar el entorno y ejecutar la aplicación.
 
-# bash
+***bash***
+
 git clone https://github.com/tu-usuario/vinipedia.git
+
 cd vinipedia
 
 # Sigue las instrucciones para instalar dependencias y ejecutar el proyecto
-Licencia
+**Licencia**
 Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo LICENSE para obtener más detalles.
 
