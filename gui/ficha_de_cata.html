@@ -5,127 +5,266 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ficha de Cata</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            color: #333;
+        :root {
+            --dark-burgundy: #2C041C;
+            --light-burgundy: #6F1A37;
+            --gold: #C1A87D;
+            --cream: #FFF8E7;
+            --accent-gold: #8B7355;
         }
+
+        body {
+            font-family: 'Helvetica', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--dark-burgundy);
+            color: var(--cream);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--light-burgundy);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            border: 2px solid var(--gold);
+        }
+
         h1 {
             text-align: center;
-            color: #800000; /* Color vino */
+            color: var(--gold);
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
+
         .form-section {
+            background-color: rgba(44, 4, 28, 0.3);
+            border-radius: 10px;
+            padding: 20px;
             margin-bottom: 20px;
+            border: 1px solid var(--gold);
+            transition: transform 0.3s ease;
         }
+
+        .form-section:hover {
+            transform: translateY(-5px);
+        }
+
         .form-section h2 {
-            background-color: #f0f0f0;
-            padding: 10px;
-            margin: 0 -20px;
+            color: var(--gold);
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 10px;
+            margin-top: 0;
         }
-        .form-section input[type="text"],
-        .form-section input[type="number"],
-        .form-section textarea {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+
         .checkbox-group {
-            margin: 10px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
         }
-        .checkbox-group label {
-            margin-right: 15px;
-        }
-        .form-section label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-section .checkbox-group {
+
+        .checkbox-item {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
+            padding: 8px;
+            background-color: rgba(193, 168, 125, 0.1);
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
         }
-        .form-section .checkbox-group label {
-            width: 25%;
+
+        .checkbox-item:hover {
+            background-color: rgba(193, 168, 125, 0.2);
+        }
+
+        input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--gold);
+        }
+
+        label {
+            color: var(--cream);
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid var(--gold);
+            background-color: var(--cream);
+            color: var(--dark-burgundy);
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid var(--gold);
+            background-color: var(--cream);
+            color: var(--dark-burgundy);
+            font-size: 14px;
+        }
+
+        button {
+            background-color: var(--gold);
+            color: var(--dark-burgundy);
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: var(--accent-gold);
+        }
+
+        .rating {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .star {
+            font-size: 30px;
+            color: var(--cream);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .star:hover {
+            color: var(--gold);
+        }
+
+        @media (max-width: 600px) {
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Ficha de Cata</h1>
+    <div class="container">
+        <h1>🍷 Ficha de Cata</h1>
 
-    <div class="form-section">
-        <h2>Fase 1: Examen Visual</h2>
-        <label>Profundidad de color:</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox"> Pálido</label>
-            <label><input type="checkbox"> Mediano</label>
-            <label><input type="checkbox"> Profundo</label>
-            <label><input type="checkbox"> Oscuro</label>
+        <div class="form-section">
+            <h2>Fase 1: Examen Visual</h2>
+            <label>Profundidad de color:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox"> Pálido</label>
+                <label><input type="checkbox"> Mediano</label>
+                <label><input type="checkbox"> Profundo</label>
+                <label><input type="checkbox"> Oscuro</label>
+            </div>
+            <label>Tonalidad de color:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox"> Verdoso</label>
+                <label><input type="checkbox"> Amarillo</label>
+                <label><input type="checkbox"> Pajiso</label>
+                <label><input type="checkbox"> Dorado</label>
+                <label><input type="checkbox"> Ámbar</label>
+                <!-- Agrega más opciones según sea necesario -->
+            </div>
+            <label>Limpidez:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox"> Brillante</label>
+                <label><input type="checkbox"> Cristalino</label>
+                <label><input type="checkbox"> Limpio</label>
+                <label><input type="checkbox"> Apagado</label>
+                <label><input type="checkbox"> Turbio</label>
+            </div>
         </div>
-        <label>Tonalidad de color:</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox"> Verdoso</label>
-            <label><input type="checkbox"> Amarillo</label>
-            <label><input type="checkbox"> Pajiso</label>
-            <label><input type="checkbox"> Dorado</label>
-            <label><input type="checkbox"> Ámbar</label>
-            <!-- Agrega más opciones según sea necesario -->
+
+        <div class="form-section">
+            <h2>Fase 2: Examen Olfativo</h2>
+            <label>Intensidad del aroma:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox"> Poco aromático</label>
+                <label><input type="checkbox"> Aromático</label>
+                <label><input type="checkbox"> Muy aromático</label>
+                <label><input type="checkbox"> Inapreciable</label>
+            </div>
         </div>
-        <label>Limpidez:</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox"> Brillante</label>
-            <label><input type="checkbox"> Cristalino</label>
-            <label><input type="checkbox"> Limpio</label>
-            <label><input type="checkbox"> Apagado</label>
-            <label><input type="checkbox"> Turbio</label>
+
+        <div class="form-section">
+            <h2>Fase 3: Examen Gustativo</h2>
+            <label>Ataque:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox"> Seco</label>
+                <label><input type="checkbox"> Abocado</label>
+                <label><input type="checkbox"> Dulce</label>
+                <label><input type="checkbox"> Ácido</label>
+            </div>
+            <label>Cuerpo:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox"> Muy liviano</label>
+                <label><input type="checkbox"> Liviano</label>
+                <label><input type="checkbox"> Mucho cuerpo</label>
+                <label><input type="checkbox"> Cuerpo medio</label>
+            </div>
+            <label>Acidez:</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox"> Ácido</label>
+                <label><input type="checkbox"> Fresco</label>
+                <label><input type="checkbox"> Dulce</label>
+                <label><input type="checkbox"> Suave</label>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>Descripción</h2>
+            <textarea rows="4" placeholder="Escriba una descripción..."></textarea>
+        </div>
+
+        <div class="form-section">
+            <h2>Alumno</h2>
+            <input type="text" placeholder="Nombre del alumno...">
         </div>
     </div>
 
-    <div class="form-section">
-        <h2>Fase 2: Examen Olfativo</h2>
-        <label>Intensidad del aroma:</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox"> Poco aromático</label>
-            <label><input type="checkbox"> Aromático</label>
-            <label><input type="checkbox"> Muy aromático</label>
-            <label><input type="checkbox"> Inapreciable</label>
-        </div>
-    </div>
+    <script>
+        // Añadir animaciones y funcionalidad
+        document.querySelectorAll('.form-section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+        });
 
-    <div class="form-section">
-        <h2>Fase 3: Examen Gustativo</h2>
-        <label>Ataque:</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox"> Seco</label>
-            <label><input type="checkbox"> Abocado</label>
-            <label><input type="checkbox"> Dulce</label>
-            <label><input type="checkbox"> Ácido</label>
-        </div>
-        <label>Cuerpo:</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox"> Muy liviano</label>
-            <label><input type="checkbox"> Liviano</label>
-            <label><input type="checkbox"> Mucho cuerpo</label>
-            <label><input type="checkbox"> Cuerpo medio</label>
-        </div>
-        <label>Acidez:</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox"> Ácido</label>
-            <label><input type="checkbox"> Fresco</label>
-            <label><input type="checkbox"> Dulce</label>
-            <label><input type="checkbox"> Suave</label>
-        </div>
-    </div>
+        window.addEventListener('load', () => {
+            let delay = 0;
+            document.querySelectorAll('.form-section').forEach(section => {
+                setTimeout(() => {
+                    section.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    section.style.opacity = '1';
+                    section.style.transform = 'translateY(0)';
+                }, delay);
+                delay += 200;
+            });
+        });
 
-    <div class="form-section">
-        <h2>Descripción</h2>
-        <textarea rows="4" placeholder="Escriba una descripción..."></textarea>
-    </div>
-
-    <div class="form-section">
-        <h2>Alumno</h2>
-        <input type="text" placeholder="Nombre del alumno...">
-    </div>
+        // Añadir funcionalidad a las estrellas
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            star.addEventListener('click', () => {
+                stars.forEach((s, i) => {
+                    s.style.color = i <= index ? 'var(--gold)' : 'var(--cream)';
+                });
+            });
+        });
+    </script>
 </body>
 </html>

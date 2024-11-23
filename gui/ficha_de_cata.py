@@ -1,185 +1,367 @@
-import sys
-import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QLabel
-from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtCore import QUrl
+import customtkinter as ctk
+from PIL import Image, ImageTk
+from styles import Colors, Fonts
+from utils import WindowManager, ErrorHandler, NotificationManager
+from components import AnimatedButton
 
-class FormularioCataVino(QMainWindow):
+class RatingStars(ctk.CTkFrame):
+    def __init__(self, master, command=None, **kwargs):
+        super().__init__(master, fg_color="transparent", **kwargs)
+        self.command = command
+        self.rating = 0
+        self.stars = []
+        
+        for i in range(5):
+            star = ctk.CTkButton(
+                self,
+                text="★",
+                width=30,
+                height=30,
+                fg_color="transparent",
+                text_color=Colors.CREAM,
+                hover_color=Colors.HOVER_BURGUNDY,
+                font=ctk.CTkFont(size=24),
+                command=lambda x=i+1: self.set_rating(x)
+            )
+            star.pack(side="left", padx=2)
+            self.stars.append(star)
+
+    def set_rating(self, value):
+        self.rating = value
+        for i, star in enumerate(self.stars):
+            star.configure(text_color=Colors.GOLD if i < value else Colors.CREAM)
+        if self.command:
+            self.command(value)
+
+class FormularioCataVino(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Formulario de Cata de Vino")
-        self.setGeometry(100, 100, 1024, 768)
+        self.window_manager = WindowManager()
+        self.title("Ficha de Cata - ViniPedia")
+        self.geometry("1300x800")
+        self.configure(fg_color=Colors.DARK_BURGUNDY)
+        self.center_window()
+        self.create_layout()
+        self.animate_startup()
+
+    def center_window(self):
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width - 1300) // 2
+        y = (screen_height - 800) // 2
+        self.geometry(f"1300x800+{x}+{y}")
+
+    def create_layout(self):
+        main_container = ctk.CTkScrollableFrame(
+            self,
+            fg_color=Colors.LIGHT_BURGUNDY,
+            corner_radius=20,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        main_container.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Establecer color de fondo vino
-        self.setStyleSheet("background-color: #800000;")  # Color vino
+        self.create_header(main_container)
         
-        # Guardar el formulario en un archivo HTML
-        self.form_file = 'ficha_de_cata.html'
-        self.guardar_html_formulario()
+        self.create_wine_info(main_container)
         
-        # Inicializar la interfaz de usuario
-        self.initUI()
+        self.create_visual_phase(main_container)
+        self.create_nose_phase(main_container)
+        self.create_taste_phase(main_container)
+        
+        self.create_conclusion(main_container)
+        
+        self.create_action_buttons(main_container)
 
-    def initUI(self):
-        # Configurar la interfaz gráfica
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
+    def create_header(self, parent):
+        header_frame = ctk.CTkFrame(
+            parent,
+            fg_color=Colors.DARK_BURGUNDY,
+            corner_radius=15,
+            height=120,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        header_frame.pack(fill="x", pady=20)
+        
+        try:
+            logo_image = Image.open("assets/wine_glass.png")
+            logo_image = logo_image.resize((60, 60))
+            self.logo_photo = ImageTk.PhotoImage(logo_image)
+            logo_label = ctk.CTkLabel(
+                header_frame,
+                image=self.logo_photo,
+                text=""
+            )
+            logo_label.pack(pady=(20,5))
+        except:
+            logo_text = ctk.CTkLabel(
+                header_frame,
+                text="🍷",
+                font=ctk.CTkFont(size=48),
+                text_color=Colors.GOLD
+            )
+            logo_text.pack(pady=(20,5))
+        
+        title_label = ctk.CTkLabel(
+            header_frame,
+            text="Ficha de Cata",
+            font=ctk.CTkFont(size=32, weight="bold"),
+            text_color=Colors.GOLD
+        )
+        title_label.pack(pady=5)
 
-        # Crear un QWebEngineView para mostrar el HTML del formulario
-        self.web_view = QWebEngineView()
-        layout.addWidget(self.web_view)
+    def create_wine_info(self, parent):
+        info_frame = ctk.CTkFrame(
+            parent,
+            fg_color=Colors.DARK_BURGUNDY,
+            corner_radius=15,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        info_frame.pack(fill="x", pady=20)
+        
+        title = ctk.CTkLabel(
+            info_frame,
+            text="Información del Vino",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=Colors.GOLD
+        )
+        title.pack(pady=15)
+        
+        fields = [
+            ("Nombre del Vino:", "entry"),
+            ("Bodega:", "entry"),
+            ("Añada:", "entry"),
+            ("D.O.:", "entry"),
+            ("Variedad de Uva:", "entry"),
+            ("Temperatura de Servicio:", "entry")
+        ]
+        
+        for i, (label_text, field_type) in enumerate(fields):
+            label = ctk.CTkLabel(
+                info_frame,
+                text=label_text,
+                font=ctk.CTkFont(size=14),
+                text_color=Colors.CREAM
+            )
+            label.pack(padx=20, pady=(10,0), anchor="w")
+            
+            entry = ctk.CTkEntry(
+                info_frame,
+                height=35,
+                font=ctk.CTkFont(size=14),
+                fg_color=Colors.CREAM,
+                text_color=Colors.DARK_BURGUNDY,
+                border_color=Colors.GOLD,
+                corner_radius=8
+            )
+            entry.pack(fill="x", padx=20, pady=(5,10))
 
-        # Verificar si el archivo HTML existe
-        if os.path.exists(self.form_file):
-            url = QUrl.fromLocalFile(os.path.abspath(self.form_file))
-            self.web_view.setUrl(url)
-        else:
-            error_label = QLabel("No se pudo encontrar el archivo del formulario.")
-            error_label.setStyleSheet("color: white;")
-            layout.addWidget(error_label)
+    def create_visual_phase(self, parent):
+        phase_frame = self.create_phase_frame(parent, "Fase Visual")
+        
+        aspects = [
+            ("Limpidez", ["Brillante", "Limpio", "Turbio", "Opaco"]),
+            ("Color", ["Amarillo", "Dorado", "Rubí", "Granate", "Púrpura"]),
+            ("Intensidad", ["Pálido", "Medio", "Intenso", "Profundo"]),
+            ("Viscosidad", ["Fluida", "Media", "Densa", "Muy densa"])
+        ]
+        
+        self.create_aspect_groups(phase_frame, aspects)
 
-    def guardar_html_formulario(self):
-        # Guardar el contenido del formulario HTML en un archivo
-        html_content = '''
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Ficha de Cata</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 20px;
-                    color: #333;
-                }
-                h1 {
-                    text-align: center;
-                    color: #800000; /* Color vino */
-                }
-                .form-section {
-                    margin-bottom: 20px;
-                }
-                .form-section h2 {
-                    background-color: #f0f0f0;
-                    padding: 10px;
-                    margin: 0 -20px;
-                }
-                .form-section input[type="text"],
-                .form-section input[type="number"],
-                .form-section textarea {
-                    width: calc(100% - 22px);
-                    padding: 10px;
-                    margin: 10px 0;
-                    border: 1px solid #ccc;
-                    border-radius: 4px;
-                }
-                .checkbox-group {
-                    margin: 10px 0;
-                }
-                .checkbox-group label {
-                    margin-right: 15px;
-                }
-                .form-section label {
-                    display: block;
-                    margin-bottom: 5px;
-                    font-weight: bold;
-                }
-                .form-section .checkbox-group {
-                    display: flex;
-                    flex-wrap: wrap;
-                }
-                .form-section .checkbox-group label {
-                    width: 25%;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>Ficha de Cata</h1>
+    def create_nose_phase(self, parent):
+        phase_frame = self.create_phase_frame(parent, "Fase Olfativa")
+        
+        aspects = [
+            ("Intensidad", ["Baja", "Media-baja", "Media", "Alta", "Muy alta"]),
+            ("Aromas Primarios", ["Frutal", "Floral", "Herbáceo", "Mineral"]),
+            ("Aromas Secundarios", ["Lácteos", "Levaduras", "Pan", "Mantequilla"]),
+            ("Aromas Terciarios", ["Madera", "Especias", "Cuero", "Tabaco"])
+        ]
+        
+        self.create_aspect_groups(phase_frame, aspects)
 
-            <div class="form-section">
-                <h2>Fase 1: Examen Visual</h2>
-                <label>Profundidad de color:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox"> Pálido</label>
-                    <label><input type="checkbox"> Mediano</label>
-                    <label><input type="checkbox"> Profundo</label>
-                    <label><input type="checkbox"> Oscuro</label>
-                </div>
-                <label>Tonalidad de color:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox"> Verdoso</label>
-                    <label><input type="checkbox"> Amarillo</label>
-                    <label><input type="checkbox"> Pajiso</label>
-                    <label><input type="checkbox"> Dorado</label>
-                    <label><input type="checkbox"> Ámbar</label>
-                    <!-- Agrega más opciones según sea necesario -->
-                </div>
-                <label>Limpidez:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox"> Brillante</label>
-                    <label><input type="checkbox"> Cristalino</label>
-                    <label><input type="checkbox"> Limpio</label>
-                    <label><input type="checkbox"> Apagado</label>
-                    <label><input type="checkbox"> Turbio</label>
-                </div>
-            </div>
+    def create_taste_phase(self, parent):
+        phase_frame = self.create_phase_frame(parent, "Fase Gustativa")
+        
+        aspects = [
+            ("Dulzor", ["Seco", "Semiseco", "Semidulce", "Dulce"]),
+            ("Acidez", ["Baja", "Media-baja", "Media", "Alta"]),
+            ("Taninos", ["Suaves", "Medios", "Firmes", "Astringentes"]),
+            ("Cuerpo", ["Ligero", "Medio", "Completo", "Muy completo"]),
+            ("Alcohol", ["Bajo", "Medio", "Alto", "Muy alto"]),
+            ("Persistencia", ["Corta", "Media", "Larga", "Muy larga"])
+        ]
+        
+        self.create_aspect_groups(phase_frame, aspects)
 
-            <div class="form-section">
-                <h2>Fase 2: Examen Olfativo</h2>
-                <label>Intensidad del aroma:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox"> Poco aromático</label>
-                    <label><input type="checkbox"> Aromático</label>
-                    <label><input type="checkbox"> Muy aromático</label>
-                    <label><input type="checkbox"> Inapreciable</label>
-                </div>
-            </div>
+    def create_phase_frame(self, parent, title):
+        frame = ctk.CTkFrame(
+            parent,
+            fg_color=Colors.DARK_BURGUNDY,
+            corner_radius=15,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        frame.pack(fill="x", pady=20)
+        
+        title_label = ctk.CTkLabel(
+            frame,
+            text=title,
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=Colors.GOLD
+        )
+        title_label.pack(pady=15)
+        
+        return frame
 
-            <div class="form-section">
-                <h2>Fase 3: Examen Gustativo</h2>
-                <label>Ataque:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox"> Seco</label>
-                    <label><input type="checkbox"> Abocado</label>
-                    <label><input type="checkbox"> Dulce</label>
-                    <label><input type="checkbox"> Ácido</label>
-                </div>
-                <label>Cuerpo:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox"> Muy liviano</label>
-                    <label><input type="checkbox"> Liviano</label>
-                    <label><input type="checkbox"> Mucho cuerpo</label>
-                    <label><input type="checkbox"> Cuerpo medio</label>
-                </div>
-                <label>Acidez:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox"> Ácido</label>
-                    <label><input type="checkbox"> Fresco</label>
-                    <label><input type="checkbox"> Dulce</label>
-                    <label><input type="checkbox"> Suave</label>
-                </div>
-            </div>
+    def create_aspect_groups(self, parent, aspects):
+        for aspect, options in aspects:
+            group_frame = ctk.CTkFrame(parent, fg_color="transparent")
+            group_frame.pack(fill="x", padx=20, pady=10)
+            
+            label = ctk.CTkLabel(
+                group_frame,
+                text=aspect,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                text_color=Colors.CREAM
+            )
+            label.pack(anchor="w")
+            
+            options_frame = ctk.CTkFrame(group_frame, fg_color="transparent")
+            options_frame.pack(fill="x", pady=(5,0))
+            
+            for option in options:
+                checkbox = ctk.CTkCheckBox(
+                    options_frame,
+                    text=option,
+                    font=ctk.CTkFont(size=14),
+                    text_color=Colors.CREAM,
+                    fg_color=Colors.GOLD,
+                    hover_color=Colors.ACCENT_GOLD,
+                    border_color=Colors.GOLD,
+                    checkmark_color=Colors.DARK_BURGUNDY
+                )
+                checkbox.pack(side="left", padx=10)
 
-            <div class="form-section">
-                <h2>Descripción</h2>
-                <textarea rows="4" placeholder="Escriba una descripción..."></textarea>
-            </div>
+    def create_conclusion(self, parent):
+        conclusion_frame = ctk.CTkFrame(
+            parent,
+            fg_color=Colors.DARK_BURGUNDY,
+            corner_radius=15,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        conclusion_frame.pack(fill="x", pady=20)
+        
+        title = ctk.CTkLabel(
+            conclusion_frame,
+            text="Conclusión",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=Colors.GOLD
+        )
+        title.pack(pady=15)
+        
+        rating_frame = ctk.CTkFrame(conclusion_frame, fg_color="transparent")
+        rating_frame.pack(fill="x", padx=20, pady=10)
+        
+        rating_label = ctk.CTkLabel(
+            rating_frame,
+            text="Puntuación:",
+            font=ctk.CTkFont(size=16),
+            text_color=Colors.CREAM
+        )
+        rating_label.pack(side="left", padx=(0,10))
+        
+        self.rating_stars = RatingStars(rating_frame)
+        self.rating_stars.pack(side="left")
+        
+        notes_label = ctk.CTkLabel(
+            conclusion_frame,
+            text="Notas de cata:",
+            font=ctk.CTkFont(size=14),
+            text_color=Colors.CREAM
+        )
+        notes_label.pack(padx=20, pady=(10,0), anchor="w")
+        
+        self.notes_text = ctk.CTkTextbox(
+            conclusion_frame,
+            height=150,
+            font=ctk.CTkFont(size=14),
+            fg_color=Colors.CREAM,
+            text_color=Colors.DARK_BURGUNDY,
+            border_color=Colors.GOLD,
+            border_width=2,
+            corner_radius=8
+        )
+        self.notes_text.pack(fill="x", padx=20, pady=10)
 
-            <div class="form-section">
-                <h2>Alumno</h2>
-                <input type="text" placeholder="Nombre del alumno...">
-            </div>
-        </body>
-        </html>
-        '''
-        with open(self.form_file, 'w', encoding='utf-8') as file:
-            file.write(html_content)
+    def create_action_buttons(self, parent):
+        button_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        button_frame.pack(fill="x", pady=20)
+        
+        save_button = AnimatedButton(
+            button_frame,
+            text="Guardar Cata",
+            command=self.save_cata,
+            fg_color=Colors.GOLD,
+            text_color=Colors.DARK_BURGUNDY,
+            hover_color=Colors.ACCENT_GOLD,
+            width=200,
+            height=45
+        )
+        save_button.pack(side="right", padx=5)
+        
+        cancel_button = AnimatedButton(
+            button_frame,
+            text="Cancelar",
+            command=self.cancel_cata,
+            fg_color="transparent",
+            text_color=Colors.CREAM,
+            hover_color=Colors.HOVER_BURGUNDY,
+            border_width=2,
+            border_color=Colors.GOLD,
+            width=200,
+            height=45
+        )
+        cancel_button.pack(side="right", padx=5)
+        
+        back_button = AnimatedButton(
+            button_frame,
+            text="Volver al Inicio",
+            command=self.back_to_home,
+            fg_color=Colors.GOLD,
+            text_color=Colors.DARK_BURGUNDY,
+            hover_color=Colors.ACCENT_GOLD,
+            width=200,
+            height=40
+        )
+        back_button.pack(side="left", padx=5)
+
+    def save_cata(self):
+        NotificationManager.show_notification(
+            "Cata guardada exitosamente",
+            self
+        )
+
+    def cancel_cata(self):
+        self.destroy()
+
+    def animate_startup(self):
+        def fade_in(widget, alpha=0):
+            if alpha < 1:
+                widget.attributes('-alpha', alpha)
+                self.after(20, lambda: fade_in(widget, alpha + 0.1))
+        
+        self.attributes('-alpha', 0)
+        fade_in(self)
+
+    def back_to_home(self):
+        from home import WineAppHomeGUI
+        self.window_manager.switch_window(self, WineAppHomeGUI)
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    formulario_cata_vino = FormularioCataVino()
-    formulario_cata_vino.show()
-    sys.exit(app.exec_())
+    app = FormularioCataVino()
+    app.mainloop()
 

@@ -1,214 +1,390 @@
-import sys
-import os
-from PIL import Image, ImageTk, ImageDraw
 import customtkinter as ctk
-from tkinter import filedialog
-from dropdown_menu import WineAppDropdownMenu
+from PIL import Image, ImageTk
+import os
+from styles import Colors, Fonts
+from utils import ErrorHandler, NotificationManager
+from components import AnimatedButton
 
-# Color palette
-DARK_BURGUNDY = "#4A0E0E"
-LIGHT_BURGUNDY = "#800020"
-GOLD = "#FFD700"
-CREAM = "#FFFDD0"
-
-class WineAppMobileGUI:
-    def __init__(self):
-        ctk.set_appearance_mode("light")
-        ctk.set_default_color_theme("dark-blue")
-
-        self.root = ctk.CTk()
-        self.root.title("Wine Enthusiast Profile")
-        self.root.geometry("480x740")  # Common Android phone resolution
-
-        self.colors = {
-            "DARK_BURGUNDY": DARK_BURGUNDY,
-            "LIGHT_BURGUNDY": LIGHT_BURGUNDY,
-            "gold": GOLD,
-            "cream": CREAM,
-        }
-
-        self.create_widgets()
-        self.layout_widgets()
-
-    def create_widgets(self):
-        # Main content frame
-        self.main_frame = ctk.CTkFrame(
-            self.root,
-            fg_color=self.colors["DARK_BURGUNDY"],
+class ProfileStatCard(ctk.CTkFrame):
+    def __init__(self, master, title, value, icon=None, **kwargs):
+        super().__init__(master, **kwargs)
+        
+        self.configure(
+            fg_color=Colors.LIGHT_BURGUNDY,
+            corner_radius=20,
             border_width=2,
-            border_color=self.colors["cream"],
+            border_color=Colors.GOLD
         )
-        self.main_frame.pack(fill="both", expand=True)
-
-        # Add the dropdown menu
-        self.dropdown_menu = WineAppDropdownMenu(
-            self.main_frame, current_page=self.root
+        
+        # Contenedor principal
+        content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        content_frame.pack(fill="both", expand=True, padx=15, pady=15)
+        
+        # Icono
+        if icon:
+            icon_label = ctk.CTkLabel(
+                content_frame,
+                text=icon,
+                font=ctk.CTkFont(size=32),
+                text_color=Colors.GOLD
+            )
+            icon_label.pack(pady=(0,5))
+        
+        # Valor
+        value_label = ctk.CTkLabel(
+            content_frame,
+            text=str(value),
+            font=ctk.CTkFont(size=28, weight="bold"),
+            text_color=Colors.GOLD
         )
-        self.dropdown_menu.place(x=10, y=10)
+        value_label.pack()
+        
+        # Título
+        title_label = ctk.CTkLabel(
+            content_frame,
+            text=title,
+            font=ctk.CTkFont(size=14),
+            text_color=Colors.CREAM
+        )
+        title_label.pack()
+        
+        # Animaciones
+        self.bind("<Enter>", self.on_enter)
+        self.bind("<Leave>", self.on_leave)
+    
+    def on_enter(self, event):
+        self.configure(border_color=Colors.ACCENT_GOLD)
+        self.lift()
+    
+    def on_leave(self, event):
+        self.configure(border_color=Colors.GOLD)
 
-        # Profile Photo
-        self.photo_frame = ctk.CTkFrame(
-            self.main_frame,
+class ActivityCard(ctk.CTkFrame):
+    def __init__(self, master, activity_data, **kwargs):
+        super().__init__(master, **kwargs)
+        
+        self.configure(
+            fg_color=Colors.DARK_BURGUNDY,
+            corner_radius=15,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        
+        # Contenedor principal
+        content = ctk.CTkFrame(self, fg_color="transparent")
+        content.pack(fill="both", expand=True, padx=15, pady=10)
+        
+        # Icono y título en la misma línea
+        header = ctk.CTkFrame(content, fg_color="transparent")
+        header.pack(fill="x")
+        
+        icon_label = ctk.CTkLabel(
+            header,
+            text=activity_data["icon"],
+            font=ctk.CTkFont(size=24),
+            text_color=Colors.GOLD
+        )
+        icon_label.pack(side="left", padx=5)
+        
+        title_label = ctk.CTkLabel(
+            header,
+            text=activity_data["title"],
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=Colors.CREAM
+        )
+        title_label.pack(side="left", padx=5)
+        
+        # Fecha
+        date_label = ctk.CTkLabel(
+            header,
+            text=activity_data["date"],
+            font=ctk.CTkFont(size=12),
+            text_color=Colors.GOLD
+        )
+        date_label.pack(side="right", padx=5)
+        
+        # Descripción
+        if "description" in activity_data:
+            desc_label = ctk.CTkLabel(
+                content,
+                text=activity_data["description"],
+                font=ctk.CTkFont(size=14),
+                text_color=Colors.CREAM,
+                wraplength=300
+            )
+            desc_label.pack(pady=(5,0))
+
+class WineAppMobileGUI(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        
+        # Configuración básica
+        self.title("Perfil - ViniPedia")
+        self.geometry("1300x800")
+        self.configure(fg_color=Colors.DARK_BURGUNDY)
+        
+        # Centrar ventana
+        self.center_window()
+        
+        # Crear layout principal
+        self.create_layout()
+        
+        # Animación de inicio
+        self.animate_startup()
+
+    def center_window(self):
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width - 1300) // 2
+        y = (screen_height - 800) // 2
+        self.geometry(f"1300x800+{x}+{y}")
+
+    def create_layout(self):
+        # Contenedor principal (sin scroll)
+        main_container = ctk.CTkFrame(
+            self,
+            fg_color=Colors.LIGHT_BURGUNDY,
+            corner_radius=20,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        main_container.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # Header (fuera del scroll)
+        self.create_header(main_container)
+        
+        # Contenedor con scroll para el contenido
+        content_scroll = ctk.CTkScrollableFrame(
+            main_container,
+            fg_color="transparent"
+        )
+        content_scroll.pack(fill="both", expand=True, padx=20, pady=(0,20))
+        
+        # Contenedor para el contenido
+        content_frame = ctk.CTkFrame(content_scroll, fg_color="transparent")
+        content_frame.pack(fill="both", expand=True)
+        content_frame.grid_columnconfigure(0, weight=2)
+        content_frame.grid_columnconfigure(1, weight=3)
+        
+        # Panel izquierdo (stats y actividad)
+        left_panel = ctk.CTkFrame(
+            content_frame,
+            fg_color=Colors.DARK_BURGUNDY,
+            corner_radius=15,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        left_panel.grid(row=0, column=0, sticky="nsew", padx=(0,10))
+        
+        self.create_stats(left_panel)
+        self.create_recent_activity(left_panel)
+        
+        # Panel derecho (colección de vinos)
+        right_panel = ctk.CTkFrame(
+            content_frame,
+            fg_color=Colors.DARK_BURGUNDY,
+            corner_radius=15,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        right_panel.grid(row=0, column=1, sticky="nsew")
+        
+        self.create_wine_collection(right_panel)
+        
+        # Botón de volver (fuera del scroll)
+        back_button = AnimatedButton(
+            main_container,
+            text="Volver al Inicio",
+            command=self.back_to_home,
+            fg_color=Colors.GOLD,
+            text_color=Colors.DARK_BURGUNDY,
+            hover_color=Colors.ACCENT_GOLD,
+            width=200,
+            height=40
+        )
+        back_button.pack(pady=20)
+
+    def create_header(self, parent):
+        header_frame = ctk.CTkFrame(
+            parent,
+            fg_color=Colors.DARK_BURGUNDY,
+            corner_radius=15,
+            height=200,
+            border_width=2,
+            border_color=Colors.GOLD
+        )
+        header_frame.pack(fill="x", padx=20, pady=20)
+        
+        # Contenedor para foto y nombre
+        profile_container = ctk.CTkFrame(header_frame, fg_color="transparent")
+        profile_container.pack(side="left", padx=30, pady=20)
+        
+        # Foto de perfil
+        try:
+            profile_image = Image.open("assets/profile.png")
+            profile_image = profile_image.resize((150, 150))
+            self.profile_photo = ImageTk.PhotoImage(profile_image)
+            photo_label = ctk.CTkLabel(
+                profile_container,
+                image=self.profile_photo,
+                text=""
+            )
+        except:
+            # Fallback si no hay foto
+            photo_label = ctk.CTkLabel(
+                profile_container,
+                text="👤",
+                font=ctk.CTkFont(size=80),
+                text_color=Colors.GOLD
+            )
+        photo_label.pack()
+        
+        # Información del usuario
+        info_container = ctk.CTkFrame(header_frame, fg_color="transparent")
+        info_container.pack(side="left", fill="both", expand=True, pady=20)
+        
+        name_label = ctk.CTkLabel(
+            info_container,
+            text="Juan Pérez",
+            font=ctk.CTkFont(size=32, weight="bold"),
+            text_color=Colors.GOLD
+        )
+        name_label.pack(anchor="w")
+        
+        title_label = ctk.CTkLabel(
+            info_container,
+            text="Sommelier Amateur",
+            font=ctk.CTkFont(size=18),
+            text_color=Colors.CREAM
+        )
+        title_label.pack(anchor="w")
+        
+        bio_label = ctk.CTkLabel(
+            info_container,
+            text="Apasionado por los vinos tintos y la cultura vitivinícola.",
+            font=ctk.CTkFont(size=14),
+            text_color=Colors.CREAM,
+            wraplength=400
+        )
+        bio_label.pack(anchor="w", pady=(10,0))
+        
+        # Botones de acción
+        button_container = ctk.CTkFrame(header_frame, fg_color="transparent")
+        button_container.pack(side="right", padx=30, pady=20)
+        
+        edit_button = AnimatedButton(
+            button_container,
+            text="Editar Perfil",
             width=150,
-            height=150,
-            corner_radius=75,  # Ensures the frame is circular
-            fg_color=self.colors["DARK_BURGUNDY"],
+            height=40,
+            fg_color=Colors.GOLD,
+            text_color=Colors.DARK_BURGUNDY,
+            hover_color=Colors.ACCENT_GOLD
         )
-        self.photo_frame.place(relx=0.5, rely=0.2, anchor="center")
-
-        self.canvas = ctk.CTkCanvas(
-            self.photo_frame,
+        edit_button.pack(pady=5)
+        
+        settings_button = AnimatedButton(
+            button_container,
+            text="Configuración",
             width=150,
-            height=150,
-            bg=self.colors["DARK_BURGUNDY"],
-            highlightthickness=0,
+            height=40,
+            fg_color="transparent",
+            text_color=Colors.CREAM,
+            hover_color=Colors.HOVER_BURGUNDY,
+            border_width=2,
+            border_color=Colors.GOLD
         )
-        self.canvas.pack(fill="both", expand=True)
+        settings_button.pack(pady=5)
 
-        # Load profile photo button
-        self.load_photo_button = ctk.CTkButton(
-            self.main_frame,
-            text="Load Photo",
-            command=self.load_photo,
-            fg_color=self.colors["LIGHT_BURGUNDY"],
-            hover_color=self.colors["gold"],
+    def create_stats(self, parent):
+        stats_label = ctk.CTkLabel(
+            parent,
+            text="Estadísticas",
+            font=ctk.CTkFont(size=24, weight="bold"),
+            text_color=Colors.GOLD
         )
-        self.load_photo_button.place(relx=0.5, rely=0.35, anchor="center")
+        stats_label.pack(pady=20)
+        
+        stats_container = ctk.CTkFrame(parent, fg_color="transparent")
+        stats_container.pack(fill="x", padx=20)
+        stats_container.grid_columnconfigure((0,1), weight=1)
+        
+        stats_data = [
+            ("Reseñas", "124", "📝"),
+            ("Favoritos", "45", "❤️"),
+            ("Seguidores", "89", "👥"),
+            ("Siguiendo", "56", "🤝")
+        ]
+        
+        for i, (title, value, icon) in enumerate(stats_data):
+            card = ProfileStatCard(
+                stats_container,
+                title,
+                value,
+                icon,
+                width=150,
+                height=120
+            )
+            card.grid(row=i//2, column=i%2, padx=5, pady=5, sticky="nsew")
 
-        # Name
-        self.name_entry = ctk.CTkEntry(
-            self.main_frame,
-            placeholder_text="Your Name",
-            font=("Helvetica", 18),
-            width=250,
-            fg_color=self.colors["cream"],
-            text_color=self.colors["DARK_BURGUNDY"],
+    def create_recent_activity(self, parent):
+        activity_label = ctk.CTkLabel(
+            parent,
+            text="Actividad Reciente",
+            font=ctk.CTkFont(size=24, weight="bold"),
+            text_color=Colors.GOLD
         )
+        activity_label.pack(pady=20)
+        
+        activities = [
+            {
+                "icon": "🍷",
+                "title": "Reseñó Malbec Reserve 2018",
+                "date": "Hoy",
+                "description": "Un vino excepcional con notas a frutos rojos..."
+            },
+            {
+                "icon": "❤️",
+                "title": "Añadió a favoritos",
+                "date": "Ayer",
+                "description": "Cabernet Sauvignon 2019"
+            },
+            {
+                "icon": "🏆",
+                "title": "Logro desbloqueado",
+                "date": "Hace 2 días",
+                "description": "¡Catador Experto!"
+            }
+        ]
+        
+        for activity in activities:
+            card = ActivityCard(parent, activity)
+            card.pack(fill="x", padx=20, pady=5)
 
-        # Favorite Wine
-        self.fav_wine_entry = ctk.CTkEntry(
-            self.main_frame,
-            placeholder_text="Favorite Wine",
-            font=("Helvetica", 14),
-            width=250,
-            fg_color=self.colors["cream"],
-            text_color=self.colors["DARK_BURGUNDY"],
+    def create_wine_collection(self, parent):
+        collection_label = ctk.CTkLabel(
+            parent,
+            text="Mi Colección",
+            font=ctk.CTkFont(size=24, weight="bold"),
+            text_color=Colors.GOLD
         )
+        collection_label.pack(pady=20)
+        
+        # Aquí irían las tarjetas de vinos...
 
-        # About
-        self.about_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.about_label = ctk.CTkLabel(
-            self.about_frame,
-            text="About Me",
-            font=("Helvetica", 16, "bold"),
-            text_color=self.colors["gold"],
-        )
-        self.about_text = ctk.CTkTextbox(
-            self.about_frame,
-            wrap="word",
-            height=80,
-            font=("Helvetica", 14),
-            width=300,
-            fg_color=self.colors["cream"],
-            text_color=self.colors["DARK_BURGUNDY"],
-        )
-        self.about_text.insert("1.0", "Share your passion for wine...")
+    def animate_startup(self):
+        def fade_in(widget, alpha=0):
+            if alpha < 1:
+                widget.attributes('-alpha', alpha)
+                self.after(20, lambda: fade_in(widget, alpha + 0.1))
+        
+        self.attributes('-alpha', 0)
+        fade_in(self)
 
-        # Last Reviews
-        self.reviews_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.reviews_label = ctk.CTkLabel(
-            self.reviews_frame,
-            text="Recent Wine Reviews",
-            font=("Helvetica", 16, "bold"),
-            text_color=self.colors["gold"],
-        )
-        self.review1 = ctk.CTkLabel(
-            self.reviews_frame,
-            text="2022 Cabernet Sauvignon - Rich and full-bodied",
-            font=("Helvetica", 14),
-            fg_color=self.colors["cream"],
-            corner_radius=8,
-            pady=5,
-        )
-        self.review2 = ctk.CTkLabel(
-            self.reviews_frame,
-            text="2021 Chardonnay - Crisp with hints of oak",
-            font=("Helvetica", 14),
-            fg_color=self.colors["cream"],
-            corner_radius=8,
-            pady=5,
-        )
-
-        # Buttons
-        self.button_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.add_review_button = ctk.CTkButton(
-            self.button_frame,
-            text="Add Review",
-            fg_color=self.colors["LIGHT_BURGUNDY"],
-            hover_color=self.colors["gold"],
-        )
-        self.fav_button = ctk.CTkButton(
-            self.button_frame,
-            text="Favorites",
-            fg_color=self.colors["LIGHT_BURGUNDY"],
-            hover_color=self.colors["gold"],
-        )
-        self.edit_profile_button = ctk.CTkButton(
-            self.button_frame,
-            text="Edit Profile",
-            fg_color=self.colors["LIGHT_BURGUNDY"],
-            hover_color=self.colors["gold"],
-        )
-
-    def layout_widgets(self):
-        self.name_entry.place(relx=0.5, rely=0.45, anchor="center")
-        self.fav_wine_entry.place(relx=0.5, rely=0.53, anchor="center")
-
-        self.about_frame.place(relx=0.5, rely=0.65, anchor="center", relwidth=0.9)
-        self.about_label.pack(anchor="w")
-        self.about_text.pack(fill="x", pady=5)
-
-        self.reviews_frame.place(relx=0.5, rely=0.8, anchor="center", relwidth=0.9)
-        self.reviews_label.pack(anchor="w", pady=(0, 5))
-        self.review1.pack(fill="x", pady=2)
-        self.review2.pack(fill="x", pady=2)
-
-        self.button_frame.place(relx=0.5, rely=0.9, anchor="center", relwidth=0.9)
-        self.add_review_button.pack(side="left", expand=True, padx=5)
-        self.fav_button.pack(side="left", expand=True, padx=5)
-        self.edit_profile_button.pack(side="right", expand=True, padx=5)
-
-    def load_photo(self):
-        file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
-        if file_path:
-            img = Image.open(file_path)
-            img = img.resize((150, 150), Image.Resampling.LANCZOS)
-
-            # Create a circular mask
-            mask = Image.new('L', (150, 150), 0)
-            draw = ImageDraw.Draw(mask)
-            draw.ellipse((0, 0, 150, 150), fill=255)
-            img.putalpha(mask)
-
-            # Create an image with a transparent background and paste the circular photo onto it
-            circular_img = Image.new('RGBA', (150, 150), (0, 0, 0, 0))
-            circular_img.paste(img, (0, 0), img)
-
-            # Convert to PhotoImage
-            self.photo_img = ImageTk.PhotoImage(circular_img)
-
-            # Clear existing images
-            self.canvas.delete("all")
-            
-            # Create a new image on the canvas
-            self.canvas.create_image(75, 75, image=self.photo_img, anchor="center")
-            
-            # Keep a reference to avoid garbage collection
-            self.canvas.image = self.photo_img
-
-    def run(self):
-        self.root.mainloop()
+    def back_to_home(self):
+        from home import WineAppHomeGUI
+        self.window_manager.switch_window(self, WineAppHomeGUI)
 
 if __name__ == "__main__":
     app = WineAppMobileGUI()
-    app.run()
+    app.mainloop()
